@@ -15,12 +15,12 @@ export default class FilmsList extends Component {
     };
   }
 
-  componentDidMount() {
-    this.retrieveFilms();
+  async componentDidMount() {
+    await this.retrieveFilms();
   }
 
-  retrieveFilms() {
-    FilmsDataService.getAll()
+  async retrieveFilms() {
+    await FilmsDataService.getAll()
       .then(response => {
         this.setState({
           films: response.data.results
@@ -49,7 +49,6 @@ export default class FilmsList extends Component {
                 className={
                   `list-group-item ${(index === currentIndex) ? 'active' : ''}`
                 }
-                style={{cursor: "pointer"}}
                 onClick={() => this.setActiveFilm(film, index)}
                 key={index}>{film.title}</li>
             ))}
@@ -59,10 +58,9 @@ export default class FilmsList extends Component {
           {currentFilm ? (
             <div className="card" style={{width: "100%"}}>
               <div className="card-body">
-                <img src="https://dummyimage.com/400x450" className="m-3" alt="image star war"/>
+                <img src={`/images/films/${currentFilm.episode_id}.jpg`} className="m-3" alt="star war"/>
                 <h5 className="card-title">{currentFilm.title}</h5>
-                <h6 className="card-subtitle text-muted mt-1">Director: {currentFilm.director}</h6>
-                <p className="card-text mt-3">{currentFilm.opening_crawl}</p>
+                <h6 className="card-subtitle text-muted mt-1 mb-3">Director: {currentFilm.director}</h6>
                 <Link className="btn btn-primary" to={`/films/${currentIndex + 1}`}>Details</Link>
               </div>
             </div>

@@ -12,14 +12,13 @@ class Film extends Component {
     }
   }
 
-  componentDidMount() {
-    this.getFilm(this.props.router.params.id);
+  async componentDidMount() {
+    await this.getFilm(this.props.router.params.id);
   }
 
-  getFilm(id) {
-    FilmsDataService.get(id)
+  async getFilm(id) {
+    await FilmsDataService.get(id)
       .then(async response => {
-        console.log(response);
         this.setState({
           currentFilm: response.data
         });
@@ -32,9 +31,10 @@ class Film extends Component {
       });
   }
 
-  getCharacters(urls) {
-    urls.map(async (url) => {
+  async getCharacters(urls) {
+    await urls.map(async (url) => {
       await FilmsDataService.getCharacter(url.substring(21)).then(response => {
+        response.data.id = url.substring(28).replaceAll('/', '');
         this.setState(prevState => ({
           characters: [...prevState.characters, response.data]
         }))
@@ -45,44 +45,54 @@ class Film extends Component {
   render() {
     const {currentFilm, characters, errorMessage} = this.state;
     return (<div>
-      {currentFilm.title ? (<div>
-        <h2 className="mt-3 mb-3">{currentFilm.title}</h2>
-        <h5 className="text-muted">Director: {currentFilm.director}</h5>
-        <h6 className="text-muted">Producer: {currentFilm.producer}</h6>
-        <p className="text-muted mt-3">{currentFilm.opening_crawl}</p>
-        <table className="table table-bordered table-hover table-striped">
-          <caption>List of characters</caption>
-          <thead>
-          <tr>
-            <th>Name</th>
-            <th>Height</th>
-            <th>Mass</th>
-            <th>hair_color</th>
-            <th>skin_color</th>
-            <th>eye_color</th>
-            <th>birth_year</th>
-            <th>gender</th>
-          </tr>
-          </thead>
-          <tbody>
-          {characters.map(character => (<tr>
-            <td>{character.name}</td>
-            <td>{character.height}</td>
-            <td>{character.mass}</td>
-            <td>{character.hair_color}</td>
-            <td>{character.skin_color}</td>
-            <td>{character.eye_color}</td>
-            <td>{character.birth_year}</td>
-            <td>{character.gender}</td>
-          </tr>))}
-          </tbody>
-        </table>
-      </div>) : (
-        <div>
-          <h5>the film with id {this.props.router.params.id} was not found</h5>
-          {errorMessage}
+      {errorMessage === '' ? (<div>
+        <div className="col-md-12">
+          <div className="card mb-3 p-5" style={{width: "100%"}}>
+            <div className="row g-0">
+              <div className="col-md-4">
+                <img src={`/images/films/${currentFilm.episode_id}.jpg`} className="img-fluid rounded-start" alt="..."/>
+              </div>
+              <div className="col-md-8">
+                <div className="card-body text-start">
+                  <h1 className="card-title">{currentFilm.title}</h1>
+                  <p className="card-subtitle text-muted mt-3"><b>Release Date:</b> {currentFilm.release_date}</p>
+                  <p className="card-subtitle text-muted"><b>Director:</b> {currentFilm.director}</p>
+                  <p className="card-subtitle text-muted"><b>Producer(s):</b> {currentFilm.producer}</p>
+                  <p className="card-subtitle text-muted mt-3"><b>Opening Crawl:</b> {currentFilm.opening_crawl}</p>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
-      )}
+        <div>
+          <h3 className="mb-20">Characters</h3>
+          <div className="col-md-12" style={{display: "flex", flexWrap: "wrap"}}>
+            {
+              characters.map(character =>
+                (
+                  <div className="card m-3" style={{width: "14rem"}}>
+                    <img src={`/images/characters/${character.id}.jpg`}
+                         onError={({currentTarget}) => {
+                           currentTarget.onerror = null;
+                           currentTarget.src = "/images/default.jpg"
+                         }}
+                         className="card-img-top"
+                         alt={`${character.id}, ${character.name} - ${currentFilm.title}`}/>
+                    <div className="card-body">
+                      <h5 className="card-title">{character.name}</h5>
+                      <h6 className="card-subtitle text-muted">Birth Year: {character.birth_year}</h6>
+                      <h6 className="card-subtitle text-muted">Gender: {character.gender}</h6>
+                    </div>
+                  </div>
+                )
+              )
+            }
+          </div>
+
+        </div>
+      </div>) : (<div>
+        {errorMessage}
+      </div>)}
     </div>)
   }
 }
